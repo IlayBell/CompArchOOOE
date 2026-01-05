@@ -319,25 +319,16 @@ ProgCtx analyzeProg(const unsigned int opsLatency[], const InstInfo progTrace[],
     return exit;
 }
 
-void rec_delete_graph(Node* node, std::vector<Node*> visited) {
-    if (!node || find_in_vec(visited, node) >= 0) {
-        return;
-    }
-
-    visited.push_back(node);
-
-    for (int i = 0; i < node->get_num_offsprings(); i++) {
-        rec_delete_graph(node->get_offspring_at_idx(i), visited);
-    }
-
-    delete node;
-}
-
 void freeProgCtx(ProgCtx ctx) {
     Node* ctx_node = reinterpret_cast<Node*>(ctx);
     
-    std::vector<Node*> visited;
-    rec_delete_graph(ctx_node, visited);
+    std::vector<Node*> vec;
+    top_sort(ctx_node, vec);
+
+
+    for (int i = static_cast<int>(vec.size()) - 1; i >= 0; i--) {
+        delete vec.at(i);
+    }
 }
 
 int getInstDepth(ProgCtx ctx, unsigned int theInst) {

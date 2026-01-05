@@ -251,7 +251,7 @@ ProgCtx analyzeProg(const unsigned int opsLatency[], const InstInfo progTrace[],
 
     exit->add_offspring(entry);
 
-    for (int i = 0; i < numOfInsts; i++) {
+    for (size_t i = 0; i < numOfInsts; i++) {
         // a node can have max 2 srcs
         Node* src1_node = search_graph_by_dst(exit, progTrace[i].src1Idx);    
         Node* src2_node = search_graph_by_dst(exit, progTrace[i].src2Idx); 
@@ -307,12 +307,12 @@ int getInstDepth(ProgCtx ctx, unsigned int theInst) {
     std::vector<int> d;
 
     // resets all total weights
-    for(int i = 0; i < top_sort_res.size(); i++) {
+    for(size_t i = 0; i < top_sort_res.size(); i++) {
         d.push_back(0);
     }
 
     // weight maxxing
-    for(int i = 0; i < d.size(); i++) {
+    for(size_t i = 0; i < d.size(); i++) {
         Node* curr = top_sort_res.at(i);
 
         for (int j = 0; j < curr->get_num_offsprings(); j++) {

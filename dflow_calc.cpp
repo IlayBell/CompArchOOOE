@@ -281,24 +281,16 @@ ProgCtx analyzeProg(const unsigned int opsLatency[], const InstInfo progTrace[],
     return exit;
 }
 
-// deletes entire graph excpet entry
-void deleteGraph(Node* head) {
-    for (int i = 0; i < head->get_num_offsprings(); i++) {
-        if (head->get_offspring_at_idx(i)->get_key() >= 0) {
-            freeProgCtx(head->get_offspring_at_idx(i));
-        }
-    }
-
-    delete head;
-}
-
 void freeProgCtx(ProgCtx ctx) {
     Node* ctx_node = reinterpret_cast<Node*>(ctx);
-    Node* entry = search_graph_by_key(ctx_node, -1); // entry key is -1
+    
+    std::vector<Node*> vec;
+    top_sort(ctx_node, vec);
 
-    deleteGraph(ctx_node);
 
-    delete entry;
+    for (int i = static_cast<int>(vec.size()) - 1; i >= 0; i--) {
+        delete vec.at(i);
+    }
 }
 
 int getInstDepth(ProgCtx ctx, unsigned int theInst) {

@@ -232,18 +232,39 @@ Node* search_graph_by_key(Node* node, int key) {
 }
 
 /**
- * @fn top_sort
- * @brief topological sort for DAG.
+ * @fn top_sort_rec
+ * @brief recursive topological sort.
  * @param[in] node the starting node of the graph.
  * @param[out] res a reference to a vector that will be appended with sorted nodes.
  */
-void top_sort(Node* node, std::vector<Node*>& res) {
+void top_sort_rec(Node* node, std::vector<Node*>& res, bool visited[]) {
+    if (visited[node->get_key() + 1]) {
+        return;
+    }
+
+    visited[node->get_key() + 1] = true;
+
     for (int i = 0; i < node->get_num_offsprings(); i++) {
-        top_sort(node->get_offspring_at_idx(i), res);
+        top_sort_rec(node->get_offspring_at_idx(i), res, visited);
     }
 
     res.insert(res.begin(), node);
 }
+
+/**
+ * @fn top_sort
+ * @brief wrapper for recursive topological sort.
+ * @param[in] node the starting node of the graph.
+ * @param[out] res a reference to a vector that will be appended with sorted nodes.
+ */
+void top_sort(Node* node, std::vector<Node*>& res) {
+    // the size is the key of exit + 1, the dst of exit is -2 by def in init.
+    int size = search_graph_by_dst(node, -2)->get_key();
+    bool visited[size + 1] = { false }; //+1 for entry key(entry) = -1
+    top_sort_rec(node, res, visited);
+}
+
+
 
 ProgCtx analyzeProg(const unsigned int opsLatency[], const InstInfo progTrace[], unsigned int numOfInsts) {
     Node* entry = new Node(-1, -1, 0); // dst and key of entry is -1

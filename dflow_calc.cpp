@@ -3,6 +3,7 @@
 
 #include "dflow_calc.h"
 #include <vector>
+#include <iostream>
 
 
 class Node {
@@ -238,6 +239,10 @@ Node* search_graph_by_key(Node* node, int key) {
  * @param[out] res a reference to a vector that will be appended with sorted nodes.
  */
 void top_sort_rec(Node* node, std::vector<Node*>& res, bool visited[]) {
+    if (!node) {
+        return;
+    }
+
     if (visited[node->get_key() + 1]) {
         return;
     }
@@ -259,7 +264,11 @@ void top_sort_rec(Node* node, std::vector<Node*>& res, bool visited[]) {
  */
 void top_sort(Node* node, std::vector<Node*>& res) {
     // the size is the key of exit + 1, the dst of exit is -2 by def in init.
-    int size = search_graph_by_dst(node, -2)->get_key();
+    Node* exit = search_graph_by_dst(node, -2);
+    if (!exit) {
+        std::cout << "cry about it" << std::endl; 
+    }
+    int size = exit->get_key();
     bool visited[size + 1] = { false }; //+1 for entry key(entry) = -1
     top_sort_rec(node, res, visited);
 }

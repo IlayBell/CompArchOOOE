@@ -155,6 +155,18 @@ class Node {
             return 0;
         }
 
+        /**
+         * @fn subtree_size
+         * @brief Returns the number of nodes in the subtree rooted at this node.
+         * @return number of nodes in the subtree.
+         */
+        int subtree_size() {
+            int size = 1; // count this node
+            for (int i = 0; i < this->num_offsprings; i++) {
+                size += this->offsprings[i]->subtree_size();
+            }
+            return size;
+        }
 };
 
 
@@ -238,16 +250,17 @@ Node* search_graph_by_key(Node* node, int key) {
  * @param[in] node the starting node of the graph.
  * @param[out] res a reference to a vector that will be appended with sorted nodes.
  */
-void top_sort_rec(Node* node, std::vector<Node*>& res, bool visited[]) {
+void top_sort_rec(Node* node, std::vector<Node*>& res, std::vector<Node*>& visited) {
     if (!node) {
         return;
     }
 
-    if (visited[node->get_key() + 1]) {
+    // already visited
+    if (find_in_vec(visited, node) >= 0) {
         return;
     }
 
-    visited[node->get_key() + 1] = true;
+    visited.push_back(node);
 
     for (int i = 0; i < node->get_num_offsprings(); i++) {
         top_sort_rec(node->get_offspring_at_idx(i), res, visited);
@@ -259,25 +272,20 @@ void top_sort_rec(Node* node, std::vector<Node*>& res, bool visited[]) {
 /**
  * @fn top_sort
  * @brief wrapper for recursive topological sort.
- * @param[in] node the starting node of the graph.
+ * @param[in] head the starting node of the graph - the latest command.
  * @param[out] res a reference to a vector that will be appended with sorted nodes.
  */
-void top_sort(Node* node, std::vector<Node*>& res) {
+void top_sort(Node* head, std::vector<Node*>& res) {
     // the size is the key of exit + 1, the dst of exit is -2 by def in init.
-    Node* exit = search_graph_by_dst(node, -2);
-    if (!exit) {
-        std::cout << "cry about it" << std::endl; 
-    }
-    int size = exit->get_key();
-    bool visited[size + 1] = { false }; //+1 for entry key(entry) = -1
-    top_sort_rec(node, res, visited);
+    std::vector<Node*> visited;
+    top_sort_rec(head, res, visited);
 }
 
 
 
 ProgCtx analyzeProg(const unsigned int opsLatency[], const InstInfo progTrace[], unsigned int numOfInsts) {
     Node* entry = new Node(-1, -1, 0); // dst and key of entry is -1
-    Node* exit = new Node(numOfInsts + 1, -2, 0);  // dst and key of exit is last+1
+    Node* exit = new Node(numOfInsts + 1, -2, 0);  // key of exit is last+1
 
     exit->add_offspring(entry);
 

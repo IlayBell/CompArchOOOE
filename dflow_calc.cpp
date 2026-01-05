@@ -4,6 +4,23 @@
 #include "dflow_calc.h"
 #include <vector>
 
+// returns max
+int max(int a, int b) {
+    return a > b ? a : b;
+}
+
+// finds idx of desired node inside a vector.
+int find_in_vec(std::vector<Node*>& vec, Node* node) {
+    for (size_t i = 0; i < vec.size(); i++) {
+        if (vec.at(i)->get_key() == node->get_key()) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+
 class Node {
     int key;
     int dst; // every dst is unique because we don't have WAW.
@@ -328,19 +345,4 @@ int getProgDepth(ProgCtx ctx) {
     return getInstDepth(ctx, node->get_key());
 }
 
-// returns max
-int max(int a, int b) {
-    return a > b ? a : b;
-}
-
-// finds idx of desired node inside a vector.
-int find_in_vec(std::vector<Node*>& vec, Node* node) {
-    for (int i = 0; i < vec.size(); i++) {
-        if (vec.at(i)->get_key() == node->get_key()) {
-            return i;
-        }
-    }
-
-    return -1;
-}
 

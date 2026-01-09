@@ -327,6 +327,7 @@ void freeProgCtx(ProgCtx ctx) {
 
 
     for (int i = static_cast<int>(vec.size()) - 1; i >= 0; i--) {
+        std::cout << "delete node: " << ctx_node->get_key() << std::endl;
         delete vec.at(i);
     }
 }

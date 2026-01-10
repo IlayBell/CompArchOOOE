@@ -141,11 +141,11 @@ class Node {
         /**
          * @fn remove_offspring_from_dep
          * @brief removes the node with key from offsprings.
-         * @param[in] key the key of the desired node.
+         * @param[in] rem the node of the offspring to remove.
          * @return 0 on success, 1 if not found.
          */
-        int remove_offspring_from_dep(int dst) {
-            int idx = this->find_idx_of_offspring_by_dst(dst);
+        int remove_offspring_from_dep(Node* rem) {
+            int idx = this->find_idx_of_offspring_by_key(rem->get_key());
             if (idx == -1) {
                 return 1; // nothing to remove;
             }
@@ -187,32 +187,38 @@ int find_in_vec(std::vector<Node*>& vec, Node* node) {
 }
 
 /**
- * @fn search_graph_by_dst
- * @brief searches for node in graph.
+ * @fn search_graph_by_last_dst_rec
+ * @brief searches for node with certain dst and largest key in graph.
  * @param[in] node the "head" of graph.
  * @param[in] dst desired dst.
  * @return the pointer for found node.
  */
-Node* search_graph_by_dst(Node* node, int dst) {
+Node* search_graph_by_last_dst_rec(Node* node, int dst, Node* max) {
     if (!node) {
-        return nullptr;
+        return max;
     }
 
-    if (node->get_dst() == dst) {
-        return node;
+    if (node->get_dst() == dst &&
+        (!max || node->get_key() > max->get_key())) {
+        max = node;
     }
 
-    // checks each branch
     for (int i = 0; i < node->get_num_offsprings(); i++) {
-        Node* offspring = search_graph_by_dst(node->get_offspring_at_idx(i), dst);
-
-        // if found - return. uniqueness.
-        if(offspring) {
-            return offspring;
-        }
+        max = search_graph_by_last_dst_rec(node->get_offspring_at_idx(i), dst, max);
     }
 
-    return nullptr;
+    return max;
+}
+
+/**
+ * @fn search_graph_by_last_dst
+ * @brief wrapper for search_graph_by_last_dst_rec
+ * @param[in] node the "head" of graph.
+ * @param[in] dst desired dst.
+ * @return the pointer for found node.
+ */
+Node* search_graph_by_last_dst(Node* node, int dst) {
+    return search_graph_by_last_dst_rec(node, dst, nullptr);
 }
 
 /**
@@ -291,8 +297,8 @@ ProgCtx analyzeProg(const unsigned int opsLatency[], const InstInfo progTrace[],
 
     for (size_t i = 0; i < numOfInsts; i++) {
         // a node can have max 2 srcs
-        Node* src1_node = search_graph_by_dst(exit, progTrace[i].src1Idx);    
-        Node* src2_node = search_graph_by_dst(exit, progTrace[i].src2Idx); 
+        Node* src1_node = search_graph_by_last_dst(exit, progTrace[i].src1Idx);    
+        Node* src2_node = search_graph_by_last_dst(exit, progTrace[i].src2Idx); 
 
         // if not exist then offspring dst=-1
         if (!src1_node) {
@@ -309,8 +315,8 @@ ProgCtx analyzeProg(const unsigned int opsLatency[], const InstInfo progTrace[],
         Node* node = new Node(i, dst, latency, src1_node, src2_node);
 
         // remove srcs (adopted offsprings) from exit. ones src is others dst
-        exit->remove_offspring_from_dep(progTrace[i].src1Idx);
-        exit->remove_offspring_from_dep(progTrace[i].src2Idx);
+        exit->remove_offspring_from_dep(src1_node);
+        exit->remove_offspring_from_dep(src2_node);
         
         // adds new command to graph
         exit->add_offspring(node);
